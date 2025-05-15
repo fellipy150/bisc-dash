@@ -1,124 +1,89 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - BiscBot</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background-image: url('../assets/bisc_logo.svg');
-            background-repeat: repeat;
-            background-size: 120px 120px; /* Espaçamento total entre ícones */
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: inherit;
-            background-size: 20px 20px; /* Tamanho real do ícone */
-            opacity: 0.1;
-            z-index: -1;
-        }
-    </style>
-</head>
-<body>
-    <div class="container fade-in">
-        <header>
-            <h1>BiscBot Dashboard</h1>
-            <div id="user-info">
-                <p>Carregando suas informações...</p>
-            </div>
-            <div class="buttons">
-                <a href="/" class="btn btn-secondary">
-                    <i class="fas fa-home"></i> Início
-                </a>
-                <a href="/comandos.html" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Comandos
-                </a>
-                <a href="/api/auth_logout" class="btn btn-danger">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </a>
-            </div>
-        </header>
-
-        <div class="dashboard-container">
-            <!-- Sidebar com lista de servidores -->
-            <div class="sidebar card">
-                <h2>Seus Servidores</h2>
-                <div id="loading-servers" class="loading"></div>
-                <div id="servers-list" class="servers-list" style="display: none;">
-                    <!-- Servidores serão inseridos aqui pelo JavaScript -->
-                </div>
-                <div id="no-servers" style="display: none;">
-                    <p>Você não tem servidores com permissões administrativas.</p>
-                    <a href="https://discord.com/api/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
-                        <i class="fas fa-plus-circle"></i> Adicionar Bot a um Servidor
-                    </a>
-                </div>
-            </div>
-
-            <!-- Conteúdo principal -->
-            <div class="content card">
-                <div id="welcome-message">
-                    <h2>Bem-vindo ao Dashboard!</h2>
-                    <p>Selecione um servidor na lista ao lado para começar a configurar.</p>
-                    <i class="fas fa-arrow-left fa-3x" style="color: var(--accent-color); margin: 2rem 0;"></i>
-                </div>
-
-                <!-- Formulário de boas-vindas (oculto por padrão) -->
-                <div id="welcome-config" style="display: none;">
-                    <h2>Configuração de Boas-vindas</h2>
-                    <p>Personalize as mensagens de boas-vindas para novos membros do servidor.</p>
-                    
-                    <form id="welcome-form">
-                        <div class="form-group">
-                            <label for="welcome-enabled">Ativar mensagens de boas-vindas:</label>
-                            <label class="switch">
-                                <input type="checkbox" id="welcome-enabled">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div id="welcome-options" style="display: none;">
-                            <div class="form-group">
-                                <label for="welcome-channel">Canal de boas-vindas:</label>
-                                <select id="welcome-channel" required>
-                                    <option value="">Carregando canais...</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="welcome-message">Mensagem de boas-vindas:</label>
-                                <textarea id="welcome-message-text" rows="5" placeholder="Digite a mensagem de boas-vindas. Use {user} para mencionar o novo membro e {server} para o nome do servidor." required></textarea>
-                                <p><small>Variáveis disponíveis: {user}, {server}, {memberCount}</small></p>
-                            </div>
-                        </div>
-                        
-                        <div class="buttons">
-                            <button type="submit" class="btn btn-success" id="save-button">
-                                <i class="fas fa-save"></i> Salvar Configurações
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div id="status-message" style="display: none;"></div>
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <p>&copy; 2025 BiscBot - Todos os direitos reservados</p>
-        </footer>
-    </div>
-
-    <script src="client.js"></script>
-</body>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Dashboard - BiscBot</title>
+		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	</head>
+	<body>
+		<div class="container fade-in">
+			<header>
+				<h1>BiscBot Dashboard</h1>
+				<div id="user-info">
+					<p>Carregando suas informações...</p>
+				</div>
+				<div class="buttons">
+					<a href="/" class="btn btn-secondary">
+						<i class="fas fa-home"></i> Início </a>
+					<a href="/comandos.html" class="btn btn-secondary">
+						<i class="fas fa-list"></i> Comandos </a>
+					<a href="/api/auth_logout" class="btn btn-danger">
+						<i class="fas fa-sign-out-alt"></i> Sair </a>
+				</div>
+			</header>
+			<div class="dashboard-container">
+				<!-- Sidebar com lista de servidores -->
+				<div class="sidebar card">
+					<h2>Seus Servidores</h2>
+					<div id="loading-servers" class="loading"></div>
+					<div id="servers-list" class="servers-list" style="display: none;">
+						<!-- Servidores serão inseridos aqui pelo JavaScript -->
+					</div>
+					<div id="no-servers" style="display: none;">
+						<p>Você não tem servidores com permissões administrativas.</p>
+						<a href="https://discord.com/api/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
+							<i class="fas fa-plus-circle"></i> Adicionar Bot a um Servidor </a>
+					</div>
+				</div>
+				<!-- Conteúdo principal -->
+				<div class="content card">
+					<div id="welcome-message">
+						<h2>Bem-vindo ao Dashboard!</h2>
+						<p>Selecione um servidor na lista ao lado para começar a configurar.</p>
+						<i class="fas fa-arrow-left fa-3x" style="color: var(--accent-color); margin: 2rem 0;"></i>
+					</div>
+					<!-- Formulário de boas-vindas (oculto por padrão) -->
+					<div id="welcome-config" style="display: none;">
+						<h2>Configuração de Boas-vindas</h2>
+						<p>Personalize as mensagens de boas-vindas para novos membros do servidor.</p>
+						<form id="welcome-form">
+							<div class="form-group">
+								<label for="welcome-enabled">Ativar mensagens de boas-vindas:</label>
+								<label class="switch">
+									<input type="checkbox" id="welcome-enabled">
+									<span class="slider"></span>
+								</label>
+							</div>
+							<div id="welcome-options" style="display: none;">
+								<div class="form-group">
+									<label for="welcome-channel">Canal de boas-vindas:</label>
+									<select id="welcome-channel" required>
+										<option value="">Carregando canais...</option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label for="welcome-message">Mensagem de boas-vindas:</label>
+									<textarea id="welcome-message-text" rows="5" placeholder="Digite a mensagem de boas-vindas. Use {user} para mencionar o novo membro e {server} para o nome do servidor." required></textarea>
+									<p>
+										<small>Variáveis disponíveis: {user}, {server}, {memberCount}</small>
+									</p>
+								</div>
+							</div>
+							<div class="buttons">
+								<button type="submit" class="btn btn-success" id="save-button">
+									<i class="fas fa-save"></i> Salvar Configurações </button>
+							</div>
+						</form>
+						<div id="status-message" style="display: none;"></div>
+					</div>
+				</div>
+			</div>
+			<footer>
+				<p>&copy; 2025 BiscBot - Todos os direitos reservados</p>
+			</footer>
+		</div>
+		<script src="client.js"></script>
+	</body>
 </html>
