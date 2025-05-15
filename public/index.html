@@ -1,46 +1,88 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-	<head>
-	  <meta charset="UTF-8">
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <meta name="description" content="Página de boas-vindas da BiscBot para o servidor Biscast's™">
-	  <title>BiscBot - Boas-vindas</title>
-	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Página de boas-vindas da BiscBot para o servidor Biscast's™">
+  <title>BiscBot - Boas-vindas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Esconder a caixa de informações do usuário por padrão */
+    #userInfoBox { display: none; align-items: center; gap: 10px; }
+    #userAvatar { width: 40px; height: 40px; border-radius: 50%; }
+    /* O container do botão de login pode ser mostrado por padrão ou controlado por JS também */
+  </style>
 </head>
-	<body>
-		<header>
-			<div class="header_right">
-			<div class="logo">FELOS</div>
-			<div class="user-icons">
-				<i class="fas fa-user"></i>
-				<i class="fas fa-bars"></i>
-			</div>
-			</div>
-		</header>
-		<main>
-		<img src="https://i.ibb.co/TVmF5f9/bisc-bot-logo1.png" alt="BiscBot" class="biscbot-img">
-		<div class="intro-box">tô na área! <br>eu sou a <strong>BiscBot</strong>! <br>
-			<br>sou um projeto de bot criado para o servidor do discord <strong>Biscast's™</strong>!
-		</div>
+<body>
+<header>
+  <div class="header_right">
+    <div id="userInfoBox">
+      <img id="userAvatar" src="" alt="Avatar do Usuário">
+      <div class="logo" id="usernameDisplay"></div>
+      </div>
 
-<div style="text-align: center; margin-top: 2rem;">
-  <button id="loginButton" class="btn btn-primary" style="padding: 10px 20px; background-color: #7289DA; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-    <i class="fab fa-discord"></i> Entrar com Discord
-  </button>
-</div>
-
-		</main>
-        <script>
-  async function checkIndexLogin() {
+    <div id="loginButtonContainer" style="text-align: center; margin-top: 0;"> <button id="loginButton" class="btn btn-primary" style="padding: 10px 20px; background-color: #7289DA; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+        <i class="fab fa-discord"></i> Entrar com Discord
+      </button>
+    </div>
+  </div>
+</header>
+<main>
+  <img src="https://i.ibb.co/TVmF5f9/bisc-bot-logo1.png" alt="BiscBot" class="biscbot-img">
+  <div class="intro-box">tô na área! <br>eu sou a <strong>BiscBot</strong>! <br>
+  <br>sou um projeto de bot criado para o servidor do discord <strong>Biscast's™</strong>!
+  </div>
+  <div id="error-message" style="color: red; text-align: center; margin-top: 1rem;"></div>
+</main>
+<script>
+  async function fetchActiveUser() {
     try {
-      const response = await fetch('/api/get_guilds');
+      // É ideal ter um endpoint específico para buscar apenas os dados do usuário da sessão
+      // Ex: /api/me ou /api/current_user
+      // Usar /api/get_guilds para isso pode ser ineficiente se só precisar do usuário.
+      // Vamos criar um endpoint /api/me para isso.
+      const response = await fetch('/api/me'); // CRIE ESTE NOVO ENDPOINT
       if (response.ok) {
-        window.location.href = '/dashboard.html';
+        return await response.json();
       }
+      return null;
     } catch (error) {
-      console.log('Usuário não logado ou erro na verificação.');
+      console.log('Usuário não logado ou erro na verificação:', error);
+      return null;
     }
+  }
+
+  function updateIndexUI(user) {
+    const userInfoBox = document.getElementById('userInfoBox');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const userAvatar = document.getElementById('userAvatar');
+    const loginButtonContainer = document.getElementById('loginButtonContainer');
+
+    if (user && user.id) { // Verifica se temos um objeto de usuário válido
+      // Usuário está logado
+      usernameDisplay.textContent = user.username || 'Usuário';
+      userAvatar.src = user.avatar
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+        : 'https://cdn.discordapp.com/embed/avatars/0.png'; // Avatar padrão
+      userAvatar.alt = user.username;
+
+      userInfoBox.style.display = 'flex'; // Mostrar a caixa do usuário
+      loginButtonContainer.style.display = 'none'; // Esconder o botão de login
+
+      // Se desejar redirecionar para o dashboard automaticamente ao visitar index.html logado:
+      // window.location.href = '/dashboard.html';
+
+    } else {
+      // Usuário não está logado
+      userInfoBox.style.display = 'none'; // Esconder a caixa do usuário
+      loginButtonContainer.style.display = 'flex'; // Mostrar o botão de login (ou 'block')
+    }
+  }
+
+  async function initializeIndexPage() {
+    const user = await fetchActiveUser();
+    updateIndexUI(user);
 
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
@@ -48,14 +90,14 @@
     if (error && errorElement) {
       let message = 'Ocorreu um erro durante a autenticação.';
       if (error === 'missing_params') message = 'Erro: Parâmetros ausentes no retorno do Discord.';
-      if (error === 'invalid_state') message = 'Erro: Estado de autenticação inválido (possível CSRF). Tente novamente.';
+      if (error === 'invalid_state') message = 'Erro: Estado de autenticação inválido. Tente novamente.';
       if (error === 'auth_failed') message = 'Erro: Falha ao autenticar com o Discord. Tente novamente.';
       errorElement.textContent = message;
     }
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    checkIndexLogin();
+    initializeIndexPage();
     const loginBtn = document.getElementById('loginButton');
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
@@ -64,5 +106,5 @@
     }
   });
 </script>
-	</body>
+</body>
 </html>

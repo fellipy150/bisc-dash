@@ -7,67 +7,52 @@ async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  try {
-    const { code, state } = req.query;
+try {
+  const { code, state } = req.query;
+  console.log('Callback - Recebido code:', code, 'state:', state);
+  console.log('Callback - Session state:', req.session.oauthState);
 
-    // Verificar se recebemos o código e o state
-    if (!code || !state) {
-      return res.redirect('/?error=missing_params');
-    }
-
-    // Verificar se o state corresponde ao que salvamos (previne CSRF)
-    if (state !== req.session.oauthState) {
-      return res.redirect('/?error=invalid_state');
-    }
-
-    // Limpar o state após a verificação
-    req.session.oauthState = null;
-
-    // Troca o código por um token de acesso
-    const tokenResponse = await axios.post(
-      'https://discord.com/api/oauth2/token',
-      new URLSearchParams({
-        client_id: process.env.DISCORD_CLIENT_ID,
-        client_secret: process.env.DISCORD_CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: process.env.DISCORD_REDIRECT_URI,
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-
-    const { access_token, refresh_token, expires_in } = tokenResponse.data;
-
-    // Buscar informações do usuário
-    const userResponse = await axios.get('https://discord.com/api/users/@me', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
-    // Salvar informações importantes na sessão
-    req.session.user = {
-      id: userResponse.data.id,
-      username: userResponse.data.username,
-      discriminator: userResponse.data.discriminator,
-      avatar: userResponse.data.avatar,
-      accessToken: access_token,
-      refreshToken: refresh_token,
-      expiresAt: Date.now() + expires_in * 1000,
-    };
-
-    await req.session.save();
-
-    // Redirecionar para o dashboard
-    res.redirect('/dashboard.html');
-  } catch (error) {
-    console.error('Erro no callback:', error.response?.data || error.message);
-    res.redirect('/?error=auth_failed');
+  if (!code || !state) {
+    console.error('Callback - Código ou estado ausente.');
+    return res.redirect('/?error=missing_params');
   }
+
+  if (state !== req.session.oauthState) {
+    console.error('Callback - Estado inválido (CSRF).');
+    req.session.oauthState = null; // Limpar mesmo em erro de state
+    await req.session.save();
+    return res.redirect('/?error=invalid_state');
+  }
+  req.session.oauthState = null; // Limpar state após verificação bem-sucedida
+
+  const tokenParams = new URLSearchParams({
+    client_id: process.env.DISCORD_CLIENT_ID,
+    client_secret: process.env.DISCORD_CLIENT_SECRET,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: process.env.DISCORD_REDIRECT_URI,
+  });
+  console.log('Callback - Parâmetros para troca de token:', tokenParams.toString());
+
+  const tokenResponse = await axios.post(
+    'https://discord.com/api/oauth2/token',
+    tokenParams,
+    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+  );
+  console.log('Callback - Resposta da troca de token:', tokenResponse.data);
+  // ... (resto do código para buscar usuário e salvar sessão)
+
+  await req.session.save(); // Certifique-se de que a sessão é salva após definir req.session.user
+  console.log('Callback - Sessão salva, redirecionando para dashboard.');
+  res.redirect('/dashboard.html');
+
+} catch (error) {
+  console.error('Erro detalhado no callback:', error);
+  if (error.response) {
+    console.error('Callback - Erro na API do Discord:', error.response.data);
+  }
+  res.redirect('/?error=auth_failed');
+}
 }
 
 export default withSessionRoute(handler);
