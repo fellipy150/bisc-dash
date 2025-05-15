@@ -1,4 +1,5 @@
-import { withSessionRoute } from '../lib/session';
+// bisc-dash/api/auth_login.js
+import { withSessionRoute } from '../lib/session.js';
 
 // Função para gerar um state aleatório para segurança OAuth
 function generateRandomState() {
@@ -20,12 +21,12 @@ async function handler(req, res) {
 
     // Parâmetros necessários para a URL de autorização do Discord
     const params = new URLSearchParams({
-  client_id: process.env.DISCORD_CLIENT_ID,
-  redirect_uri: process.env.DISCORD_REDIRECT_URI,
-  response_type: 'code',
-  scope: 'identify email guilds', // Ajuste conforme necessário (ex: 'identify guilds' ou 'identify email')
-  state: state
-});
+      client_id: process.env.DISCORD_CLIENT_ID,
+      redirect_uri: process.env.DISCORD_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'identify email guilds', // Ajuste conforme necessário
+      state: state
+    });
 
     // Construir URL de autorização do Discord e redirecionar o usuário
     const authUrl = `https://discord.com/api/oauth2/authorize?${params.toString()}`;

@@ -1,5 +1,5 @@
 // bisc-dash/api/me.js
-import { withSessionRoute } from '../lib/session';
+import { withSessionRoute } from '../lib/session.js';
 
 async function handler(req, res) {
   if (req.method !== 'GET') {

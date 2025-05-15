@@ -15,43 +15,44 @@ function getElement(id) {
   return elementsCache[id];
 }
 
+
+
+
 // Função para verificar se o usuário está logado
 async function checkLoginStatus() {
-  try {
-    const response = await fetch('/api/get_guilds');
-    
-    if (!response.ok) {
-      // Se o status não for 200 OK, redirecionar para a página de login
-      if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-        window.location.href = '/';
-      }
-      return false;
+  await fetchCurrentUser(); // Popula currentUser
+  if (!currentUser) {
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      // window.location.href = '/'; // Redirecionar se não estiver na home e não logado
     }
-    
-    const data = await response.json();
-    
-    // Se temos uma resposta bem-sucedida, significa que o usuário está logado
-    currentUser = data.user;
-    return true;
-  } catch (error) {
-    console.error('Erro ao verificar status de login:', error);
     return false;
   }
+  return true;
 }
+
+
+
 
 // Função para buscar os servidores do usuário
 async function fetchUserGuilds() {
   try {
-    const response = await fetch('/api/get_guilds');
-    
+    const response = await fetch('/api/get_guilds'); // Esta rota é protegida
     if (!response.ok) {
+      // Se o token for inválido ou expirado, get_guilds pode retornar 401.
+      // O requireAuth em get_guilds.js já lida com o redirecionamento em caso de 401.
+      if (response.status === 401 && (window.location.pathname !== '/' && window.location.pathname !== '/index.html')) {
+        window.location.href = '/api/auth_login'; // Ou para a página de login
+      }
       throw new Error('Não foi possível obter os servidores');
     }
-    
-    const data = await response.json();
-    allGuilds = data.guilds || [];
-    currentUser = data.user;
-    
+    const guilds = await response.json(); // guilds é a lista de servidores
+    allGuilds = guilds || [];
+
+    // Para garantir que currentUser esteja atualizado, você pode chamar fetchCurrentUser aqui também
+    // ou certificar-se de que foi chamado antes.
+    if (!currentUser) { // Se não foi populado antes
+        await fetchCurrentUser();
+    }
     return allGuilds;
   } catch (error) {
     console.error('Erro ao buscar servidores:', error);
@@ -399,16 +400,22 @@ async function loadCommandsList() {
 
 // Função de inicialização para a página de dashboard
 async function initDashboard() {
-  const isLoggedIn = await checkLoginStatus();
-  
-  if (!isLoggedIn) return;
-  
-  // Carregar servidores
-  const guilds = await fetchUserGuilds();
+  // Primeiro, buscar os dados do usuário para popular currentUser
+  await fetchCurrentUser();
+
+  if (!currentUser) { // Se após buscar, o usuário ainda for nulo, ele não está logado
+    // Redirecionar para login, por exemplo, se não for a página de login
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+         window.location.href = '/'; // Ou para uma página específica de "login necessário"
+    }
+    return; // Interrompe a inicialização do dashboard
+  }
+
+  displayUserInfo(); // Agora currentUser deve estar populado
+
+  const guilds = await fetchUserGuilds(); // Busca as guilds
   displayGuildsList(guilds);
-  displayUserInfo();
-  
-  // Configurar listeners de eventos
+
   const welcomeForm = getElement('welcome-form');
   if (welcomeForm) {
     welcomeForm.addEventListener('submit', saveWelcomeConfig);
@@ -431,6 +438,23 @@ async function init() {
     await initCommandsPage();
   } else {
     // Página inicial / login - não precisa de inicialização especial
+  }
+}
+
+// Função para buscar dados do usuário logado
+async function fetchCurrentUser() {
+  try {
+    const response = await fetch('/api/me');
+    if (response.ok) {
+      currentUser = await response.json();
+      return currentUser;
+    }
+    currentUser = null;
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar dados do usuário:', error);
+    currentUser = null;
+    return null;
   }
 }
 
